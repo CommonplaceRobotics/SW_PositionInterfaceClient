@@ -1,0 +1,246 @@
+﻿<Window x:Class="PositionInterfaceClient.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PositionInterfaceClient" xmlns:userinterface="clr-namespace:PositionInterfaceClient.UserInterface"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto" MinHeight="150"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Grid.Column="0" Margin="4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="*" MinWidth="100"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Margin="4">Address:</TextBlock>
+                <TextBox x:Name="tbAddress" Grid.Row="0" Grid.Column="1" Margin="4" VerticalAlignment="Center">127.0.0.1</TextBox>
+                <TextBlock Grid.Row="1" Grid.Column="0" Margin="4">Interval (ms):</TextBlock>
+                <TextBox x:Name="tbInterval" Grid.Row="1" Grid.Column="1" Margin="4" VerticalAlignment="Center">50</TextBox>
+            </Grid>
+            <Button x:Name="bConnect" Margin="4" Click="bConnect_Click">
+                <TextBlock Margin="4">Connect</TextBlock>
+            </Button>
+            <Button x:Name="bDisconnect" Margin="4" Visibility="Collapsed" Click="bDisconnect_Click">
+                <TextBlock Margin="4">Disconnect</TextBlock>
+            </Button>
+            <Button x:Name="bReset" Margin="4" IsEnabled="False" Click="bReset_Click">
+                <TextBlock Margin="4">Reset</TextBlock>
+            </Button>
+            <Button x:Name="bEnable" Margin="4" IsEnabled="False" Click="bEnable_Click">
+                <TextBlock Margin="4">Enable</TextBlock>
+            </Button>
+
+            <Border Margin="4" BorderThickness="1" BorderBrush="LightGray">
+                <StackPanel>
+                    <TextBlock Margin="4">Status:</TextBlock>
+                    <TextBlock x:Name="tbStatus" Margin="4" TextWrapping="Wrap">Not Connected</TextBlock>
+                </StackPanel>
+            </Border>
+
+            <Border Margin="4" BorderThickness="1" BorderBrush="LightGray">
+                <StackPanel>
+                    <TextBlock Margin="4,4,2,4" FontWeight="Bold">Current Position:</TextBlock>
+                    <TextBlock x:Name="tbCurrentPosition" TextWrapping="Wrap" Margin="4,2" MaxWidth="150" HorizontalAlignment="Left">n/a</TextBlock>
+                    <StackPanel Orientation="Horizontal" Margin="4,2">
+                        <TextBlock Margin="0,0,4,0">Frequency:</TextBlock>
+                        <TextBlock x:Name="tbCurrentPositionFrequency" TextWrapping="Wrap" MaxWidth="150">n/a</TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Margin="4" BorderThickness="1" BorderBrush="LightGray">
+                <StackPanel>
+                    <TextBlock Margin="4,4,2,4" FontWeight="Bold">Target Position:</TextBlock>
+                    <TextBlock x:Name="tbTargetPosition" TextWrapping="Wrap" Margin="4,2" MaxWidth="150" HorizontalAlignment="Left">n/a</TextBlock>
+                    <StackPanel Orientation="Horizontal" Margin="4,2">
+                        <TextBlock Margin="0,0,4,0">Frequency:</TextBlock>
+                        <TextBlock x:Name="tbTargetPositionFrequency" TextWrapping="Wrap" MaxWidth="150">n/a</TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <TabControl x:Name="tcPositionSource" Grid.Row="0" Grid.Column="1" Margin="4" SelectionChanged="TabControl_SelectionChanged">
+            <TabItem x:Name="tJog">
+                <TabItem.Header>Jogging</TabItem.Header>
+
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="bJogReset" Margin="4" Click="bJogReset_Click">
+                            <TextBlock Margin="4">Reset</TextBlock>
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="4">Velocity:</TextBlock>
+                        <TextBox x:Name="tbJogVelocity" Margin="4" MinWidth="100" TextChanged="tbJogVelocity_TextChanged">10</TextBox>
+                        <TextBlock Margin="4">mm/s or °/s</TextBlock>
+                    </StackPanel>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto" MinWidth="20"/>
+                            <ColumnDefinition Width="auto"/>
+
+                            <ColumnDefinition Width="20"/>
+
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto" MinWidth="20"/>
+                            <ColumnDefinition Width="auto"/>
+
+                            <ColumnDefinition Width="20"/>
+
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto" MinWidth="20"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+
+                        <!-- A1 -->
+                        <Button x:Name="bJogA1Neg" Grid.Row="0" Grid.Column="0" Margin="4" Click="bJogA1Neg_Click">
+                            <TextBlock Margin="4">A1-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogA1Pos" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogA1Pos" Grid.Row="0" Grid.Column="2" Margin="4" Click="bJogA1Pos_Click">
+                            <TextBlock Margin="4">A1+</TextBlock>
+                        </Button>
+
+                        <!-- A2 -->
+                        <Button x:Name="bJogA2Neg" Grid.Row="1" Grid.Column="0" Margin="4" Click="bJogA2Neg_Click">
+                            <TextBlock Margin="4">A2-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogA2Pos" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogA2Pos" Grid.Row="1" Grid.Column="2" Margin="4" Click="bJogA2Pos_Click">
+                            <TextBlock Margin="4">A2+</TextBlock>
+                        </Button>
+
+                        <!-- A3 -->
+                        <Button x:Name="bJogA3Neg" Grid.Row="2" Grid.Column="0" Margin="4" Click="bJogA3Neg_Click">
+                            <TextBlock Margin="4">A3-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogA3Pos" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogA3Pos" Grid.Row="2" Grid.Column="2" Margin="4" Click="bJogA3Pos_Click">
+                            <TextBlock Margin="4">A3+</TextBlock>
+                        </Button>
+
+                        <!-- A4 -->
+                        <Button x:Name="bJogA4Neg" Grid.Row="0" Grid.Column="4" Margin="4" Click="bJogA4Neg_Click">
+                            <TextBlock Margin="4">A4-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogA4Pos" Grid.Row="0" Grid.Column="5" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogA4Pos" Grid.Row="0" Grid.Column="6" Margin="4" Click="bJogA4Pos_Click">
+                            <TextBlock Margin="4">A4+</TextBlock>
+                        </Button>
+
+                        <!-- A5 -->
+                        <Button x:Name="bJogA5Neg" Grid.Row="1" Grid.Column="4" Margin="4" Click="bJogA5Neg_Click">
+                            <TextBlock Margin="4">A5-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogA5Pos" Grid.Row="1" Grid.Column="5" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogA5Pos" Grid.Row="1" Grid.Column="6" Margin="4" Click="bJogA5Pos_Click">
+                            <TextBlock Margin="4">A5+</TextBlock>
+                        </Button>
+
+                        <!-- A6 -->
+                        <Button x:Name="bJogA6Neg" Grid.Row="2" Grid.Column="4" Margin="4" Click="bJogA6Neg_Click">
+                            <TextBlock Margin="4">A6-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogA6Pos" Grid.Row="2" Grid.Column="5" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogA6Pos" Grid.Row="2" Grid.Column="6" Margin="4" Click="bJogA6Pos_Click">
+                            <TextBlock Margin="4">A6+</TextBlock>
+                        </Button>
+
+                        <!-- E1 -->
+                        <Button x:Name="bJogE1Neg" Grid.Row="0" Grid.Column="8" Margin="4" Click="bJogE1Neg_Click">
+                            <TextBlock Margin="4">E1-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogE1Pos" Grid.Row="0" Grid.Column="9" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogE1Pos" Grid.Row="0" Grid.Column="10" Margin="4" Click="bJogE1Pos_Click">
+                            <TextBlock Margin="4">E1+</TextBlock>
+                        </Button>
+
+                        <!-- E2 -->
+                        <Button x:Name="bJogE2Neg" Grid.Row="1" Grid.Column="8" Margin="4" Click="bJogE2Neg_Click">
+                            <TextBlock Margin="4">E2-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogE2Pos" Grid.Row="1" Grid.Column="9" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogE2Pos" Grid.Row="1" Grid.Column="10" Margin="4" Click="bJogE2Pos_Click">
+                            <TextBlock Margin="4">E2+</TextBlock>
+                        </Button>
+
+                        <!-- E3 -->
+                        <Button x:Name="bJogE3Neg" Grid.Row="2" Grid.Column="8" Margin="4" Click="bJogE3Neg_Click">
+                            <TextBlock Margin="4">E3-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogE3Pos" Grid.Row="2" Grid.Column="9" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogE3Pos" Grid.Row="2" Grid.Column="10" Margin="4" Click="bJogE3Pos_Click">
+                            <TextBlock Margin="4">E3+</TextBlock>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem x:Name="tCSV">
+                <TabItem.Header>CSV</TabItem.Header>
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Margin="4" VerticalAlignment="Center">File:</TextBlock>
+                        <TextBox x:Name="tbCSVFileName" Grid.Row="0" Grid.Column="1" Margin="4"/>
+                        <Button x:Name="bCSVSelectFile" Grid.Row="0" Grid.Column="2" Margin="4" Click="bCSVSelectFile_Click">
+                            <TextBlock Margin="4">Select...</TextBlock>
+                        </Button>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="4">Status:</TextBlock>
+                        <TextBlock x:Name="tbCSVCurrentLine" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="4">n/a</TextBlock>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="4">Current Target:</TextBlock>
+                        <TextBlock x:Name="tbCSVCurrentTargetPos" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="4">n/a</TextBlock>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="bCSVStart" Margin="4" Click="bCSVStart_Click">
+                            <TextBlock Margin="4">Start</TextBlock>
+                        </Button>
+                        <Button x:Name="bCSVStop" Margin="4" Click="bCSVStop_Click">
+                            <TextBlock Margin="4">Stop</TextBlock>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+        <GridSplitter Grid.Row="1" Grid.ColumnSpan="2" Height="5" ResizeDirection="Rows" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" ShowsPreview="True" Background="Gray" />
+        <userinterface:LogControl Grid.Row="4" Grid.ColumnSpan="2" />
+    </Grid>
+</Window>
