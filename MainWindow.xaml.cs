@@ -1,5 +1,4 @@
-﻿using log4net.Config;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using PositionInterfaceClient.MotionGenerator;
 using PositionInterfaceClient.Network;
 using System.Windows;
@@ -17,7 +16,12 @@ namespace PositionInterfaceClient
         /// <summary>
         /// Does the network communication
         /// </summary>
-        private readonly PositionClient m_client = new();
+        private readonly PositionClient m_positionClient = new();
+
+        /// <summary>
+        /// Communicates via CRI for control commands
+        /// </summary>
+        private readonly CRIClient m_criClient = new();
 
         /// <summary>
         /// Current jog values
@@ -46,7 +50,8 @@ namespace PositionInterfaceClient
         {
             InitializeComponent();
 
-            m_client.ConnectionChanged += OnPositionItfConnectionChanged;
+            m_positionClient.ConnectionChanged += OnPositionItfConnectionChanged;
+            m_criClient.ConnectionChanged += OnCRIClientConnectionChanged;
 
             tbJogVelocity.Text = m_jogMotion.Velocity.ToString("F2");
 
@@ -69,14 +74,23 @@ namespace PositionInterfaceClient
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                if (m_client.IsRunning)
+                if(m_criClient.IsRunning)
                 {
-                    var currentPosition = m_client.CurrentPosition;
+                    tbStatus.Text = m_criClient.ErrorCode;
+                }
+                else
+                {
+                    tbStatus.Text = "Not Connected";
+                }
+
+                if (m_positionClient.IsRunning)
+                {
+                    var currentPosition = m_positionClient.CurrentPosition;
                     tbCurrentPosition.Text = string.Format("Joints: {0:F2} {1:F2} {2:F2} {3:F2} {4:F2} {5:F2} Ext: {6:F2} {7:F2} {8:F2} X={9:F2} Y={10:F2} Z={11:F2} A={12:F2} B={13:F2} C={14:F2}", currentPosition.Joints[0], currentPosition.Joints[1], currentPosition.Joints[2], currentPosition.Joints[3], currentPosition.Joints[4], currentPosition.Joints[5], currentPosition.Joints[6], currentPosition.Joints[7], currentPosition.Joints[8], currentPosition.CartesianPosition.X, currentPosition.CartesianPosition.Y, currentPosition.CartesianPosition.Z, currentPosition.CartesianOrientation.X, currentPosition.CartesianOrientation.Y, currentPosition.CartesianOrientation.Z);
-                    tbCurrentPositionFrequency.Text = string.Format("{0:F1} ms", m_client.CurrentPositionUpdateFrequencyMS);
-                    var targetPosition = m_client.LastTargetPosition;
+                    tbCurrentPositionFrequency.Text = string.Format("{0:F1} ms", m_positionClient.CurrentPositionUpdateFrequencyMS);
+                    var targetPosition = m_positionClient.LastTargetPosition;
                     tbTargetPosition.Text = string.Format("Joints: {0:F2} {1:F2} {2:F2} {3:F2} {4:F2} {5:F2} Ext: {6:F2} {7:F2} {8:F2} X={9:F2} Y={10:F2} Z={11:F2} A={12:F2} B={13:F2} C={14:F2}", targetPosition.Joints[0], targetPosition.Joints[1], targetPosition.Joints[2], targetPosition.Joints[3], targetPosition.Joints[4], targetPosition.Joints[5], targetPosition.Joints[6], targetPosition.Joints[7], targetPosition.Joints[8], targetPosition.CartesianPosition.X, targetPosition.CartesianPosition.Y, targetPosition.CartesianPosition.Z, targetPosition.CartesianOrientation.X, targetPosition.CartesianOrientation.Y, targetPosition.CartesianOrientation.Z);
-                    tbTargetPositionFrequency.Text = string.Format("{0:F1} ms", m_client.TargetPositionUpdateFrequencyMS);
+                    tbTargetPositionFrequency.Text = string.Format("{0:F1} ms", m_positionClient.TargetPositionUpdateFrequencyMS);
                 }
                 else
                 {
@@ -96,19 +110,50 @@ namespace PositionInterfaceClient
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                ResetJog();
                 if (isConnected)
                 {
                     bConnect.Visibility = Visibility.Collapsed;
                     bDisconnect.Visibility = Visibility.Visible;
-                    tbStatus.Text = "Connected";
-                    ResetJog();
                 }
                 else
                 {
                     bConnect.Visibility = Visibility.Visible;
                     bDisconnect.Visibility = Visibility.Collapsed;
                     tbStatus.Text = "Not Connected";
-                    // TODO: disconnect CRI
+                    if (m_criClient.IsRunning)
+                    {
+                        log.Info("Position interface disconnected, stopping CRI");
+                        m_criClient.Stop();
+                    }
+                }
+            }));
+        }
+
+        /// <summary>
+        /// Is called when the CRI interface connection changed
+        /// </summary>
+        /// <param name="connected"></param>
+        private void OnCRIClientConnectionChanged(bool isConnected)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                ResetJog();
+                if (isConnected)
+                {
+                    bConnect.Visibility = Visibility.Collapsed;
+                    bDisconnect.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    bConnect.Visibility = Visibility.Visible;
+                    bDisconnect.Visibility = Visibility.Collapsed;
+                    tbStatus.Text = "Not Connected";
+                    if (m_positionClient.IsRunning)
+                    {
+                        log.Info("CRI disconnected, stopping position interface");
+                        m_criClient.Stop();
+                    }
                 }
             }));
         }
@@ -124,10 +169,75 @@ namespace PositionInterfaceClient
             bDisconnect.Visibility = Visibility.Visible;
 
             string address = tbAddress.Text;
-            if (!int.TryParse(tbInterval.Text, out int interval)) interval = 100;
+            if (!int.TryParse(tbInterval.Text, out int interval))
+            {
+                interval = 100;
+                log.ErrorFormat("Could not parse interval, using default {0} ms", interval);
+            }
             interval = Math.Max(interval, 1);
-            m_client.Start(interval, address, PositionClient.PositionDefaultPort);
-            // TODO: connect CRI
+            if (!int.TryParse(tbCRIPort.Text, out int criPort))
+            {
+                criPort = CRIClient.CRIDefaultPort;
+                log.ErrorFormat("Could not parse CRI port, using default {0}", criPort);
+            }
+
+            // Start CRI
+            m_criClient.Start(address, criPort);
+
+            // Wait until CRI is up, then connect the position interface
+            Task.Factory.StartNew((() => {
+                // wait till connected
+                DateTime timestamp = DateTime.Now;
+                while (!m_criClient.IsRunning)
+                {
+                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(2))
+                    {
+                        log.Info("CRI did not connect in time, aborting");
+                        m_criClient.Stop();
+                        return;
+                    }
+                    Task.Delay(100);
+                }
+
+                // wait till position interface is started
+                timestamp = DateTime.Now;
+                if (!m_criClient.IsPositionInterfaceRunning)
+                {
+                    m_criClient.SendConfigurePositionInterface(true);
+                }
+                while(!m_criClient.IsPositionInterfaceRunning)
+                {
+                    m_criClient.RequestGetPositionInterface();
+                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(2))
+                    {
+                        log.Info("CRI did not start the position interface in time, aborting");
+                        m_criClient.Stop();
+                        return;
+                    }
+                    Task.Delay(100);
+                }
+
+                // wait till position interface is in use
+                timestamp = DateTime.Now;
+                if (!m_criClient.IsPositionInterfaceRunning)
+                {
+                    m_criClient.SendUsePositionInterface(true);
+                }
+                while (!m_criClient.IsPositionInterfaceActive)
+                {
+                    m_criClient.RequestGetPositionInterface();
+                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(1))
+                    {
+                        log.Info("CRI did not activate the position interface in time, aborting");
+                        m_criClient.Stop();
+                        return;
+                    }
+                    Task.Delay(100);
+                }
+
+                // Start position client
+                m_positionClient.Start(interval, address, PositionClient.PositionDefaultPort);
+            }));
         }
 
         /// <summary>
@@ -137,8 +247,8 @@ namespace PositionInterfaceClient
         /// <param name="e"></param>
         private void bDisconnect_Click(object sender, RoutedEventArgs e)
         {
-            m_client.Stop();
-            // TODO: disconnect CRI
+            m_positionClient.Stop();
+            m_criClient.Stop();
         }
 
         /// <summary>
@@ -148,7 +258,7 @@ namespace PositionInterfaceClient
         /// <param name="e"></param>
         private void bReset_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: reset via CRI
+            m_criClient.SendResetErrors();
         }
 
         /// <summary>
@@ -158,7 +268,7 @@ namespace PositionInterfaceClient
         /// <param name="e"></param>
         private void bEnable_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: enable via CRI
+            m_criClient.SendEnableMotors();
         }
 
         /// <summary>
@@ -168,7 +278,7 @@ namespace PositionInterfaceClient
         {
             ResetJog();
             log.Info("Using jog motion");
-            m_client.PositionSource = m_jogMotion;
+            m_positionClient.PositionSource = m_jogMotion;
         }
 
         /// <summary>
@@ -178,7 +288,7 @@ namespace PositionInterfaceClient
         {
             ResetJog();
             log.Info("Using CSV motion");
-            m_client.PositionSource = m_csvMotion;
+            m_positionClient.PositionSource = m_csvMotion;
         }
 
         /// <summary>
@@ -188,7 +298,7 @@ namespace PositionInterfaceClient
         {
             ResetJog();
             log.Info("Disabling motion");
-            m_client.PositionSource = null;
+            m_positionClient.PositionSource = null;
         }
 
         /// <summary>
@@ -212,7 +322,7 @@ namespace PositionInterfaceClient
             }
             m_jogMotion.SetJog(m_jogValues);
             m_jogMotion.SetJog(m_jogValues);
-            m_jogMotion.SetJoints(m_client.CurrentPosition.Joints);
+            m_jogMotion.SetJoints(m_positionClient.CurrentPosition.Joints);
         }
 
         /// <summary>

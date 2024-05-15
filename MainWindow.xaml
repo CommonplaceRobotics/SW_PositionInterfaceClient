@@ -14,7 +14,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto" MinHeight="150"/>
+            <RowDefinition Height="auto" MinHeight="100"/>
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Grid.Column="0" Margin="4">
@@ -26,11 +26,14 @@
                 <Grid.RowDefinitions>
                     <RowDefinition />
                     <RowDefinition />
+                    <RowDefinition />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Grid.Column="0" Margin="4">Address:</TextBlock>
                 <TextBox x:Name="tbAddress" Grid.Row="0" Grid.Column="1" Margin="4" VerticalAlignment="Center">127.0.0.1</TextBox>
-                <TextBlock Grid.Row="1" Grid.Column="0" Margin="4">Interval (ms):</TextBlock>
-                <TextBox x:Name="tbInterval" Grid.Row="1" Grid.Column="1" Margin="4" VerticalAlignment="Center">50</TextBox>
+                <TextBlock Grid.Row="1" Grid.Column="0" Margin="4">CRI Port:</TextBlock>
+                <TextBox x:Name="tbCRIPort" Grid.Row="1" Grid.Column="1" Margin="4" VerticalAlignment="Center">3920</TextBox>
+                <TextBlock Grid.Row="2" Grid.Column="0" Margin="4">Interval (ms):</TextBlock>
+                <TextBox x:Name="tbInterval" Grid.Row="2" Grid.Column="1" Margin="4" VerticalAlignment="Center">50</TextBox>
             </Grid>
             <Button x:Name="bConnect" Margin="4" Click="bConnect_Click">
                 <TextBlock Margin="4">Connect</TextBlock>

@@ -77,7 +77,7 @@ namespace PositionInterfaceClient.Network
             m_readTaskMutex.WaitOne();
             try
             {
-                log.InfoFormat("Connecting to server at {0}:{1}", address, port);
+                log.InfoFormat("Position Client: Connecting to server at {0}:{1}", address, port);
                 m_address = address;
                 m_port = port;
                 m_stopRunning = false;
@@ -108,6 +108,9 @@ namespace PositionInterfaceClient.Network
             }
         }
 
+        /// <summary>
+        /// Task method for reading incoming messages
+        /// </summary>
         private void ReadTask()
         {
             try
@@ -117,7 +120,7 @@ namespace PositionInterfaceClient.Network
                 m_lastTargetPositionUpdate = DateTime.Now;
                 m_sendTimer.Start();
 
-                log.Info("Client connected");
+                log.Info("Position client connected");
                 ConnectionChanged?.Invoke(true);
 
                 byte[] buffer = new byte[client.ReceiveBufferSize];
@@ -135,7 +138,7 @@ namespace PositionInterfaceClient.Network
             }
             catch (Exception ex)
             {
-                log.ErrorFormat("Client reader failed: {0}", ex.Message);
+                log.ErrorFormat("Position Client: Reader failed: {0}", ex.Message);
             }
             finally
             {
@@ -144,7 +147,7 @@ namespace PositionInterfaceClient.Network
                 stream = null;
 
                 ConnectionChanged?.Invoke(false);
-                log.Info("Client stopped");
+                log.Info("Position Client: Stopped");
             }
         }
 
@@ -193,7 +196,7 @@ namespace PositionInterfaceClient.Network
             catch (ObjectDisposedException) { } // ignore, may occur due to race condition on connection loss
             catch (Exception ex)
             {
-                log.ErrorFormat("Could not send position: {0}", ex.Message);
+                log.ErrorFormat("Position Client: Could not send position: {0}", ex.Message);
                 m_stopRunning = true;
             }
         }
@@ -225,13 +228,14 @@ namespace PositionInterfaceClient.Network
         }
 
         /// <summary>
-        /// Parses an incoming position message
+        /// Parses an incoming message
         /// </summary>
         /// <param name="message">Message</param>
         /// <returns>True if a valid message was found</returns>
         private void Parse(string message)
         {
             string[] msgSplit = message.Split();
+            if (msgSplit.Length <= 0) return;
 
             if (msgSplit[0] == "Pos")
             {
@@ -342,7 +346,7 @@ namespace PositionInterfaceClient.Network
             }
             else
             {
-                log.WarnFormat("Received unknown message: '{0}'", message);
+                log.WarnFormat("Position Client: Received unknown message: '{0}'", message);
             }
         }
 
