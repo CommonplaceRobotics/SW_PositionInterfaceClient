@@ -5,23 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PositionInterfaceClient" xmlns:userinterface="clr-namespace:PositionInterfaceClient.UserInterface"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="800">
+        Title="MainWindow" Height="550" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto" MinHeight="100"/>
+            <RowDefinition Height="200"/>
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Grid.Column="0" Margin="4">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"/>
-                    <ColumnDefinition Width="*" MinWidth="100"/>
+                    <ColumnDefinition Width="*" MinWidth="75"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition />
@@ -47,10 +48,12 @@
             <Button x:Name="bEnable" Margin="4" IsEnabled="False" Click="bEnable_Click">
                 <TextBlock Margin="4">Enable</TextBlock>
             </Button>
+        </StackPanel>
 
+        <StackPanel Grid.Row="0" Grid.Column="1" Margin="4">
             <Border Margin="4" BorderThickness="1" BorderBrush="LightGray">
                 <StackPanel>
-                    <TextBlock Margin="4">Status:</TextBlock>
+                    <TextBlock Margin="4" FontWeight="Bold">Status:</TextBlock>
                     <TextBlock x:Name="tbStatus" Margin="4" TextWrapping="Wrap">Not Connected</TextBlock>
                 </StackPanel>
             </Border>
@@ -58,10 +61,10 @@
             <Border Margin="4" BorderThickness="1" BorderBrush="LightGray">
                 <StackPanel>
                     <TextBlock Margin="4,4,2,4" FontWeight="Bold">Current Position:</TextBlock>
-                    <TextBlock x:Name="tbCurrentPosition" TextWrapping="Wrap" Margin="4,2" MaxWidth="150" HorizontalAlignment="Left">n/a</TextBlock>
+                    <TextBlock x:Name="tbCurrentPosition" TextWrapping="Wrap" Margin="4,2" MinWidth="150" MaxWidth="200" HorizontalAlignment="Left">n/a</TextBlock>
                     <StackPanel Orientation="Horizontal" Margin="4,2">
                         <TextBlock Margin="0,0,4,0">Frequency:</TextBlock>
-                        <TextBlock x:Name="tbCurrentPositionFrequency" TextWrapping="Wrap" MaxWidth="150">n/a</TextBlock>
+                        <TextBlock x:Name="tbCurrentPositionFrequency" TextWrapping="Wrap">n/a</TextBlock>
                     </StackPanel>
                 </StackPanel>
             </Border>
@@ -69,16 +72,16 @@
             <Border Margin="4" BorderThickness="1" BorderBrush="LightGray">
                 <StackPanel>
                     <TextBlock Margin="4,4,2,4" FontWeight="Bold">Target Position:</TextBlock>
-                    <TextBlock x:Name="tbTargetPosition" TextWrapping="Wrap" Margin="4,2" MaxWidth="150" HorizontalAlignment="Left">n/a</TextBlock>
+                    <TextBlock x:Name="tbTargetPosition" TextWrapping="Wrap" Margin="4,2" MaxWidth="200" HorizontalAlignment="Left">n/a</TextBlock>
                     <StackPanel Orientation="Horizontal" Margin="4,2">
                         <TextBlock Margin="0,0,4,0">Frequency:</TextBlock>
-                        <TextBlock x:Name="tbTargetPositionFrequency" TextWrapping="Wrap" MaxWidth="150">n/a</TextBlock>
+                        <TextBlock x:Name="tbTargetPositionFrequency" TextWrapping="Wrap">n/a</TextBlock>
                     </StackPanel>
                 </StackPanel>
             </Border>
         </StackPanel>
 
-        <TabControl x:Name="tcPositionSource" Grid.Row="0" Grid.Column="1" Margin="4" SelectionChanged="TabControl_SelectionChanged">
+        <TabControl x:Name="tcPositionSource" Grid.Row="0" Grid.Column="2" Margin="4" SelectionChanged="TabControl_SelectionChanged">
             <TabItem x:Name="tJog">
                 <TabItem.Header>Jogging</TabItem.Header>
 
@@ -243,7 +246,7 @@
             </TabItem>
         </TabControl>
 
-        <GridSplitter Grid.Row="1" Grid.ColumnSpan="2" Height="5" ResizeDirection="Rows" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" ShowsPreview="True" Background="Gray" />
-        <userinterface:LogControl Grid.Row="4" Grid.ColumnSpan="2" />
+        <GridSplitter Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Height="5" ResizeDirection="Rows" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" ShowsPreview="True" Background="Gray" />
+        <userinterface:LogControl Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" />
     </Grid>
 </Window>

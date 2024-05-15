@@ -61,8 +61,6 @@ namespace PositionInterfaceClient
             m_positionTimer.Start();
 
             SelectJogSource();
-
-            log.Debug("MainWindow loaded");
         }
 
         /// <summary>
@@ -74,14 +72,24 @@ namespace PositionInterfaceClient
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                if(m_criClient.IsRunning)
+                string status;
+                if (!m_criClient.IsRunning && !m_positionClient.IsRunning)
                 {
-                    tbStatus.Text = m_criClient.ErrorCode;
+                    status = "Not connected";
+                }
+                else if (!m_criClient.IsRunning)
+                {
+                    status = "CRI not connected";
+                }
+                else if (!m_positionClient.IsRunning)
+                {
+                    status = m_criClient.ErrorCode + ", position not connected";
                 }
                 else
                 {
-                    tbStatus.Text = "Not Connected";
+                    status = m_criClient.ErrorCode;
                 }
+                tbStatus.Text = status;
 
                 if (m_positionClient.IsRunning)
                 {

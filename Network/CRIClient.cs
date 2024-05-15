@@ -236,7 +236,7 @@ namespace PositionInterfaceClient.Network
                             break;
                         }
                     }
-                    if (errorIdx < 0) ErrorCode = msgSplit[errorIdx + 1];
+                    if (errorIdx > 0) ErrorCode = msgSplit[errorIdx + 1];
                     break;
                 case "CMD":
                     if(msgSplit.Length >= 4 && msgSplit[1] == "Active") // active / passive state
