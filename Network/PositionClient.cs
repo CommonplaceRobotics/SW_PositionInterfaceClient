@@ -11,9 +11,8 @@ namespace PositionInterfaceClient.Network
 
         // Target IP address
         private string m_address = "192.168.3.11";
-        public static readonly int PositionDefaultPort = 12345; // TODO
         // Target port number
-        private int m_port = PositionDefaultPort;
+        private int m_port = -1;
         // Read task
         private Task? m_readTask;
         // Protects access to the read task
@@ -77,6 +76,12 @@ namespace PositionInterfaceClient.Network
             m_readTaskMutex.WaitOne();
             try
             {
+                if(port < 0 || port > 65535)
+                {
+                    log.ErrorFormat("Position Client: Can not connect to invalid port number {0}", port);
+                    return;
+                }
+
                 log.InfoFormat("Position Client: Connecting to server at {0}:{1}", address, port);
                 m_address = address;
                 m_port = port;

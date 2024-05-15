@@ -244,7 +244,7 @@ namespace PositionInterfaceClient
                 }
 
                 // Start position client
-                m_positionClient.Start(interval, address, PositionClient.PositionDefaultPort);
+                m_positionClient.Start(interval, address, m_criClient.PositionInterfacePort);
             }));
         }
 

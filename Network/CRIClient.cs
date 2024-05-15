@@ -55,6 +55,7 @@ namespace PositionInterfaceClient.Network
         /// Position interface is in use as position source on the robot control
         /// </summary>
         public bool IsPositionInterfaceActive { get; private set; } = false;
+        public int PositionInterfacePort { get; private set; } = -1;
         /// <summary>
         /// Hardware error code
         /// </summary>
@@ -66,6 +67,7 @@ namespace PositionInterfaceClient.Network
         private void ResetValues()
         {
             IsConnectionActive = false;
+            PositionInterfacePort = -1;
             IsPositionInterfaceRunning = false;
             IsPositionInterfaceActive = false;
             ErrorCode = "Not Connected";
@@ -243,10 +245,11 @@ namespace PositionInterfaceClient.Network
                     {
                         if (bool.TryParse(msgSplit[3], out bool active)) IsConnectionActive = active;
                     }
-                    else if (msgSplit.Length >= 5 && msgSplit[2] == "PositionInterface") // is the position interface used as position source?
+                    else if (msgSplit.Length >= 6 && msgSplit[2] == "PositionInterface") // is the position interface used as position source?
                     {
-                        if (bool.TryParse(msgSplit[3], out bool running)) IsPositionInterfaceRunning = running;
-                        if (bool.TryParse(msgSplit[4], out bool inUse)) IsPositionInterfaceActive = inUse;
+                        if (int.TryParse(msgSplit[3], out int port)) PositionInterfacePort = port;
+                        if (bool.TryParse(msgSplit[4], out bool running)) IsPositionInterfaceRunning = running;
+                        if (bool.TryParse(msgSplit[5], out bool inUse)) IsPositionInterfaceActive = inUse;
                     }
                     break;
                 case "CONFIG":
