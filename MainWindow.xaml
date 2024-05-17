@@ -219,19 +219,22 @@
                             <RowDefinition/>
                             <RowDefinition/>
                             <RowDefinition/>
+                            <RowDefinition/>
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0" Grid.Column="0" Margin="4" VerticalAlignment="Center">File:</TextBlock>
-                        <TextBox x:Name="tbCSVFileName" Grid.Row="0" Grid.Column="1" Margin="4"/>
+                        <TextBox x:Name="tbCSVFileName" Grid.Row="0" Grid.Column="1" Margin="4" TextChanged="tbCSVFileName_TextChanged"/>
                         <Button x:Name="bCSVSelectFile" Grid.Row="0" Grid.Column="2" Margin="4" Click="bCSVSelectFile_Click">
                             <TextBlock Margin="4">Select...</TextBlock>
                         </Button>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Margin="4">Status:</TextBlock>
-                        <TextBlock x:Name="tbCSVCurrentLine" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Margin="4">n/a</TextBlock>
+                        <CheckBox x:Name="cbRepeat" Grid.Row="1" Grid.Column="0" Margin="4" Checked="cbRepeat_Checked" Unchecked="cbRepeat_Checked">Repeat</CheckBox>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="4">Current Target:</TextBlock>
-                        <TextBlock x:Name="tbCSVCurrentTargetPos" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="4">n/a</TextBlock>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Margin="4">Status:</TextBlock>
+                        <TextBlock x:Name="tbCSVCurrentLine" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="4">n/a</TextBlock>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Margin="4">Current Target:</TextBlock>
+                        <TextBlock x:Name="tbCSVCurrentTargetPos" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Margin="4">n/a</TextBlock>
                     </Grid>
 
                     <StackPanel Orientation="Horizontal">

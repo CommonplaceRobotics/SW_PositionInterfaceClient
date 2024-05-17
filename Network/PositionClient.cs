@@ -187,7 +187,7 @@ namespace PositionInterfaceClient.Network
 
                 string message;
                 var c = CultureInfo.InvariantCulture;
-                if (targetPosition.isCartesian)
+                if (targetPosition.IsCartesian)
                 {
                     message = string.Format("MSGSTART Pos C {0} {1} {2} {3} {4} {5} E {6} {7} {8} P {9} {10} {11} MSGEND", targetPosition.CartesianPosition.X.ToString(c), targetPosition.CartesianPosition.Y.ToString(c), targetPosition.CartesianPosition.Z.ToString(c), targetPosition.CartesianOrientation.X.ToString(c), targetPosition.CartesianOrientation.Y.ToString(c), targetPosition.CartesianOrientation.Z.ToString(c), targetPosition.Joints[6].ToString(c), targetPosition.Joints[7].ToString(c), targetPosition.Joints[8].ToString(c), targetPosition.PlatformPosition.X.ToString(c), targetPosition.PlatformPosition.Y.ToString(c), targetPosition.PlatformHeading.ToString(c));
                 }

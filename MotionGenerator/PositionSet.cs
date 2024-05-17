@@ -16,7 +16,7 @@ namespace PositionInterfaceClient.MotionGenerator
         public double PlatformHeading = 0;
 
         // Set true for cartesian position instead of joints
-        public bool isCartesian = false;
+        public bool IsCartesian = false;
 
         /// <summary>
         /// Constructor
@@ -34,7 +34,7 @@ namespace PositionInterfaceClient.MotionGenerator
             CartesianOrientation = other.CartesianOrientation;
             PlatformPosition = other.PlatformPosition;
             PlatformHeading = other.PlatformHeading;
-            isCartesian = other.isCartesian;
+            IsCartesian = other.IsCartesian;
         }
 
     }

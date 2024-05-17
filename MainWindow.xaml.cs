@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using PositionInterfaceClient.MotionGenerator;
 using PositionInterfaceClient.Network;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -99,6 +100,16 @@ namespace PositionInterfaceClient
                     var targetPosition = m_positionClient.LastTargetPosition;
                     tbTargetPosition.Text = string.Format("Joints: {0:F2} {1:F2} {2:F2} {3:F2} {4:F2} {5:F2} Ext: {6:F2} {7:F2} {8:F2} X={9:F2} Y={10:F2} Z={11:F2} A={12:F2} B={13:F2} C={14:F2}", targetPosition.Joints[0], targetPosition.Joints[1], targetPosition.Joints[2], targetPosition.Joints[3], targetPosition.Joints[4], targetPosition.Joints[5], targetPosition.Joints[6], targetPosition.Joints[7], targetPosition.Joints[8], targetPosition.CartesianPosition.X, targetPosition.CartesianPosition.Y, targetPosition.CartesianPosition.Z, targetPosition.CartesianOrientation.X, targetPosition.CartesianOrientation.Y, targetPosition.CartesianOrientation.Z);
                     tbTargetPositionFrequency.Text = string.Format("{0:F1} ms", m_positionClient.TargetPositionUpdateFrequencyMS);
+
+                    tbJogA1Pos.Text = m_positionClient.CurrentPosition.Joints[0].ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogA2Pos.Text = m_positionClient.CurrentPosition.Joints[1].ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogA3Pos.Text = m_positionClient.CurrentPosition.Joints[2].ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogA4Pos.Text = m_positionClient.CurrentPosition.Joints[3].ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogA5Pos.Text = m_positionClient.CurrentPosition.Joints[4].ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogA6Pos.Text = m_positionClient.CurrentPosition.Joints[5].ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogE1Pos.Text = m_positionClient.CurrentPosition.Joints[6].ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogE2Pos.Text = m_positionClient.CurrentPosition.Joints[7].ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogE3Pos.Text = m_positionClient.CurrentPosition.Joints[8].ToString("F2", CultureInfo.InvariantCulture);
                 }
                 else
                 {
@@ -106,6 +117,16 @@ namespace PositionInterfaceClient
                     tbCurrentPositionFrequency.Text = "n/a";
                     tbTargetPosition.Text = "n/a";
                     tbTargetPositionFrequency.Text = "n/a";
+
+                    tbJogA1Pos.Text = "0";
+                    tbJogA2Pos.Text = "0";
+                    tbJogA3Pos.Text = "0";
+                    tbJogA4Pos.Text = "0";
+                    tbJogA5Pos.Text = "0";
+                    tbJogA6Pos.Text = "0";
+                    tbJogE1Pos.Text = "0";
+                    tbJogE2Pos.Text = "0";
+                    tbJogE3Pos.Text = "0";
                 }
             }));
         }
@@ -284,8 +305,9 @@ namespace PositionInterfaceClient
         /// </summary>
         private void SelectJogSource()
         {
-            ResetJog();
             log.Info("Using jog motion");
+            ResetJog();
+            m_csvMotion.Stop();
             m_positionClient.PositionSource = m_jogMotion;
         }
 
@@ -294,8 +316,9 @@ namespace PositionInterfaceClient
         /// </summary>
         private void SelectCSVSource()
         {
-            ResetJog();
             log.Info("Using CSV motion");
+            ResetJog();
+            m_csvMotion.Stop();
             m_positionClient.PositionSource = m_csvMotion;
         }
 
@@ -304,8 +327,9 @@ namespace PositionInterfaceClient
         /// </summary>
         private void SelectNoSource()
         {
-            ResetJog();
             log.Info("Disabling motion");
+            ResetJog();
+            m_csvMotion.Stop();
             m_positionClient.PositionSource = null;
         }
 
@@ -463,13 +487,23 @@ namespace PositionInterfaceClient
         }
 
         /// <summary>
+        /// Handles changes of the CSV file name text box
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tbCSVFileName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            m_csvMotion.Filename = tbCSVFileName.Text;
+        }
+
+        /// <summary>
         /// Button handler for starting motion from CSV
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void bCSVStart_Click(object sender, RoutedEventArgs e)
         {
-            // TODO
+            m_csvMotion.Start();
         }
 
         /// <summary>
@@ -479,7 +513,17 @@ namespace PositionInterfaceClient
         /// <param name="e"></param>
         private void bCSVStop_Click(object sender, RoutedEventArgs e)
         {
-            // TODO
+            m_csvMotion.Stop();
+        }
+
+        /// <summary>
+        /// Handles the CSV repeat checkbox
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void cbRepeat_Checked(object sender, RoutedEventArgs e)
+        {
+            m_csvMotion.Repeat = cbRepeat.IsChecked.GetValueOrDefault(false);
         }
 
         /// <summary>
