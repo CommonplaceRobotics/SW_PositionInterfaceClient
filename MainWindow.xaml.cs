@@ -139,7 +139,7 @@ namespace PositionInterfaceClient
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                ResetJog();
+                ResetJog(true);
                 if (isConnected)
                 {
                     bConnect.Visibility = Visibility.Collapsed;
@@ -167,11 +167,13 @@ namespace PositionInterfaceClient
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                ResetJog();
+                ResetJog(true);
                 if (isConnected)
                 {
                     bConnect.Visibility = Visibility.Collapsed;
                     bDisconnect.Visibility = Visibility.Visible;
+                    bReset.IsEnabled = true;
+                    bEnable.IsEnabled = true;
                 }
                 else
                 {
@@ -183,6 +185,8 @@ namespace PositionInterfaceClient
                         log.Info("CRI disconnected, stopping position interface");
                         m_criClient.Stop();
                     }
+                    bReset.IsEnabled = false;
+                    bEnable.IsEnabled = false;
                 }
             }));
         }
@@ -287,6 +291,7 @@ namespace PositionInterfaceClient
         /// <param name="e"></param>
         private void bReset_Click(object sender, RoutedEventArgs e)
         {
+            ResetJog(true);
             m_criClient.SendResetErrors();
         }
 
@@ -297,6 +302,7 @@ namespace PositionInterfaceClient
         /// <param name="e"></param>
         private void bEnable_Click(object sender, RoutedEventArgs e)
         {
+            ResetJog(true);
             m_criClient.SendEnableMotors();
         }
 
@@ -306,7 +312,7 @@ namespace PositionInterfaceClient
         private void SelectJogSource()
         {
             log.Info("Using jog motion");
-            ResetJog();
+            ResetJog(true);
             m_csvMotion.Stop();
             m_positionClient.PositionSource = m_jogMotion;
         }
@@ -317,7 +323,7 @@ namespace PositionInterfaceClient
         private void SelectCSVSource()
         {
             log.Info("Using CSV motion");
-            ResetJog();
+            ResetJog(true);
             m_csvMotion.Stop();
             m_positionClient.PositionSource = m_csvMotion;
         }
@@ -328,7 +334,7 @@ namespace PositionInterfaceClient
         private void SelectNoSource()
         {
             log.Info("Disabling motion");
-            ResetJog();
+            ResetJog(true);
             m_csvMotion.Stop();
             m_positionClient.PositionSource = null;
         }
@@ -340,13 +346,14 @@ namespace PositionInterfaceClient
         /// <param name="e"></param>
         private void bJogReset_Click(object sender, RoutedEventArgs e)
         {
-            ResetJog();
+            ResetJog(false);
         }
 
         /// <summary>
         /// Resets all jog values to 0
         /// </summary>
-        private void ResetJog()
+        /// <param name="resetPosition">Set to true to set the current position. When in motion this may lead to a short backwards motion</param>
+        private void ResetJog(bool resetPosition)
         {
             for (int i = 0; i < m_jogValues.Length; i++)
             {
@@ -354,7 +361,10 @@ namespace PositionInterfaceClient
             }
             m_jogMotion.SetJog(m_jogValues);
             m_jogMotion.SetJog(m_jogValues);
-            m_jogMotion.SetJoints(m_positionClient.CurrentPosition.Joints);
+            if (resetPosition)
+            {
+                m_jogMotion.SetJoints(m_positionClient.CurrentPosition.Joints);
+            }
         }
 
         /// <summary>
