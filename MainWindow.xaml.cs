@@ -223,7 +223,7 @@ namespace PositionInterfaceClient
                 DateTime timestamp = DateTime.Now;
                 while (!m_criClient.IsRunning)
                 {
-                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(2))
+                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(5))
                     {
                         log.Info("CRI did not connect in time, aborting");
                         m_criClient.Stop();
@@ -241,7 +241,7 @@ namespace PositionInterfaceClient
                 while(!m_criClient.IsPositionInterfaceRunning)
                 {
                     m_criClient.RequestGetPositionInterface();
-                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(2))
+                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(5))
                     {
                         log.Info("CRI did not start the position interface in time, aborting");
                         m_criClient.Stop();
@@ -259,7 +259,7 @@ namespace PositionInterfaceClient
                 while (!m_criClient.IsPositionInterfaceActive)
                 {
                     m_criClient.RequestGetPositionInterface();
-                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(1))
+                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(5))
                     {
                         log.Info("CRI did not activate the position interface in time, aborting");
                         m_criClient.Stop();

@@ -1,4 +1,5 @@
 ﻿using PositionInterfaceClient.MotionGenerator;
+using PositionInterfaceClient.Tools;
 using System.Globalization;
 using System.Net.Sockets;
 using System.Text;
@@ -39,12 +40,12 @@ namespace PositionInterfaceClient.Network
         public IPositionSource? PositionSource { get; set; } = null;
 
         private DateTime m_lastTargetPositionUpdate = DateTime.Now;
-        private double[] m_targetPositionUpdateFrequencyMSBuffer = new double[20];
-        public double TargetPositionUpdateFrequencyMS { get { return m_targetPositionUpdateFrequencyMSBuffer.Average(); } }
+        private readonly FilterAverage m_targetPositionUpdateFrequencyMS = new FilterAverage(20);
+        public double TargetPositionUpdateFrequencyMS { get { return m_targetPositionUpdateFrequencyMS.GetAverage(); } }
 
         private DateTime m_lastCurrentPositionUpdate = DateTime.Now;
-        private double[] m_currentPositionUpdateFrequencyMSBuffer = new double[20];
-        public double CurrentPositionUpdateFrequencyMS { get { return m_currentPositionUpdateFrequencyMSBuffer.Average(); } }
+        private readonly FilterAverage m_currentPositionUpdateFrequencyMS = new FilterAverage(20);
+        public double CurrentPositionUpdateFrequencyMS { get { return m_currentPositionUpdateFrequencyMS.GetAverage(); } }
 
         /// <summary>
         /// Constructor
@@ -133,13 +134,19 @@ namespace PositionInterfaceClient.Network
 
                 while (!m_stopRunning)
                 {
-                    if (client.Available > 0) // TODO: könnte falsch sein
+                    if (client.Available > 0)
                     {
                         int cnt = stream.Read(buffer, 0, buffer.Length);
                         strBuffer += Encoding.UTF8.GetString(buffer, 0, cnt);
                         Consume(ref strBuffer);
                     }
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
                 }
+
+                Send ("QUIT");
             }
             catch (Exception ex)
             {
@@ -169,32 +176,39 @@ namespace PositionInterfaceClient.Network
         /// </summary>
         private void SendPosition()
         {
+            // Get position from position source or current position from robot
+            DateTime now = DateTime.Now;
+            PositionSet targetPosition = PositionSource?.GetPosition(CurrentPosition, (now - m_lastTargetPositionUpdate).TotalMilliseconds) ?? CurrentPosition;
+            LastTargetPosition = targetPosition;
+            // calculate frequency
+            m_targetPositionUpdateFrequencyMS.GetNewAverage((now - m_lastTargetPositionUpdate).TotalMilliseconds);
+            m_lastTargetPositionUpdate = now;
+
+            string message;
+            var c = CultureInfo.InvariantCulture;
+            if (targetPosition.IsCartesian)
+            {
+                message = string.Format("Pos C {0} {1} {2} {3} {4} {5} E {6} {7} {8} P {9} {10} {11}", targetPosition.CartesianPosition.X.ToString(c), targetPosition.CartesianPosition.Y.ToString(c), targetPosition.CartesianPosition.Z.ToString(c), targetPosition.CartesianOrientation.X.ToString(c), targetPosition.CartesianOrientation.Y.ToString(c), targetPosition.CartesianOrientation.Z.ToString(c), targetPosition.Joints[6].ToString(c), targetPosition.Joints[7].ToString(c), targetPosition.Joints[8].ToString(c), targetPosition.PlatformPosition.X.ToString(c), targetPosition.PlatformPosition.Y.ToString(c), targetPosition.PlatformHeading.ToString(c));
+            }
+            else
+            {
+                message = string.Format("Pos J {0} {1} {2} {3} {4} {5} E {6} {7} {8} P {9} {10} {11}", targetPosition.Joints[0].ToString(c), targetPosition.Joints[1].ToString(c), targetPosition.Joints[2].ToString(c), targetPosition.Joints[3].ToString(c), targetPosition.Joints[4].ToString(c), targetPosition.Joints[5].ToString(c), targetPosition.Joints[6].ToString(c), targetPosition.Joints[7].ToString(c), targetPosition.Joints[8].ToString(c), targetPosition.PlatformPosition.X.ToString(c), targetPosition.PlatformPosition.Y.ToString(c), targetPosition.PlatformHeading.ToString(c));
+            }
+            Send(message);
+        }
+
+        /// <summary>
+        /// Sends a message
+        /// </summary>
+        /// <param name="message"></param>
+        private void Send(string message)
+        {
             if (m_stopRunning || stream == null) return;
+
+            message = "MSGSTART " + message + " MSGEND";
 
             try
             {
-                // Get position from position source or current position from robot
-                DateTime now = DateTime.Now;
-                PositionSet targetPosition = PositionSource?.GetPosition(CurrentPosition, (now - m_lastTargetPositionUpdate).TotalMilliseconds) ?? CurrentPosition;
-                LastTargetPosition = targetPosition;
-                // calculate frequency
-                for (int i = 1; i < m_targetPositionUpdateFrequencyMSBuffer.Length; i++)
-                {
-                    m_targetPositionUpdateFrequencyMSBuffer[i - 1] = m_targetPositionUpdateFrequencyMSBuffer[i];
-                }
-                m_targetPositionUpdateFrequencyMSBuffer[m_targetPositionUpdateFrequencyMSBuffer.Length - 1] = (now - m_lastTargetPositionUpdate).TotalMilliseconds;
-                m_lastTargetPositionUpdate = now;
-
-                string message;
-                var c = CultureInfo.InvariantCulture;
-                if (targetPosition.IsCartesian)
-                {
-                    message = string.Format("MSGSTART Pos C {0} {1} {2} {3} {4} {5} E {6} {7} {8} P {9} {10} {11} MSGEND", targetPosition.CartesianPosition.X.ToString(c), targetPosition.CartesianPosition.Y.ToString(c), targetPosition.CartesianPosition.Z.ToString(c), targetPosition.CartesianOrientation.X.ToString(c), targetPosition.CartesianOrientation.Y.ToString(c), targetPosition.CartesianOrientation.Z.ToString(c), targetPosition.Joints[6].ToString(c), targetPosition.Joints[7].ToString(c), targetPosition.Joints[8].ToString(c), targetPosition.PlatformPosition.X.ToString(c), targetPosition.PlatformPosition.Y.ToString(c), targetPosition.PlatformHeading.ToString(c));
-                }
-                else
-                {
-                    message = string.Format("MSGSTART Pos J {0} {1} {2} {3} {4} {5} E {6} {7} {8} P {9} {10} {11} MSGEND", targetPosition.Joints[0].ToString(c), targetPosition.Joints[1].ToString(c), targetPosition.Joints[2].ToString(c), targetPosition.Joints[3].ToString(c), targetPosition.Joints[4].ToString(c), targetPosition.Joints[5].ToString(c), targetPosition.Joints[6].ToString(c), targetPosition.Joints[7].ToString(c), targetPosition.Joints[8].ToString(c), targetPosition.PlatformPosition.X.ToString(c), targetPosition.PlatformPosition.Y.ToString(c), targetPosition.PlatformHeading.ToString(c));
-                }
                 byte[] buffer = Encoding.ASCII.GetBytes(message);
                 stream?.Write(buffer, 0, buffer.Length);
             }
@@ -335,10 +349,7 @@ namespace PositionInterfaceClient.Network
 
                 // calculate frequency
                 DateTime now = DateTime.Now;
-                for (int i = 1; i < m_currentPositionUpdateFrequencyMSBuffer.Length; i++) {
-                    m_currentPositionUpdateFrequencyMSBuffer[i - 1] = m_currentPositionUpdateFrequencyMSBuffer[i];
-                }
-                m_currentPositionUpdateFrequencyMSBuffer[m_currentPositionUpdateFrequencyMSBuffer.Length - 1] = (now - m_lastCurrentPositionUpdate).TotalMilliseconds;
+                m_currentPositionUpdateFrequencyMS.GetNewAverage((now - m_lastCurrentPositionUpdate).TotalMilliseconds);
                 m_lastCurrentPositionUpdate = now;
             }
             else if(msgSplit[0] == "OK")

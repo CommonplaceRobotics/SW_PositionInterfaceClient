@@ -172,6 +172,10 @@ namespace PositionInterfaceClient.Network
                         strBuffer += Encoding.UTF8.GetString(buffer, 0, cnt);
                         Consume(ref strBuffer);
                     }
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
                 }
             }
             catch (Exception ex)
