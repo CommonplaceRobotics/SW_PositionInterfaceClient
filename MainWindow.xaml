@@ -80,19 +80,19 @@
         </StackPanel>
 
         <TabControl x:Name="tcPositionSource" Grid.Row="0" Grid.Column="2" Margin="4" SelectionChanged="TabControl_SelectionChanged">
-            <TabItem x:Name="tJog">
-                <TabItem.Header>Jogging</TabItem.Header>
+            <TabItem x:Name="tJogJoint">
+                <TabItem.Header>Jog Joint</TabItem.Header>
 
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <Button x:Name="bJogReset" Margin="4" Click="bJogReset_Click">
+                        <Button x:Name="bJogResetJOint" Margin="4" Click="bJogReset_Click">
                             <TextBlock Margin="4">Reset</TextBlock>
                         </Button>
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Margin="4">Velocity:</TextBlock>
-                        <TextBox x:Name="tbJogVelocity" Margin="4" MinWidth="100" TextChanged="tbJogVelocity_TextChanged">10</TextBox>
+                        <TextBox x:Name="tbJogJointVelocity" Margin="4" MinWidth="100" TextChanged="tbJogVelocity_TextChanged">10</TextBox>
                         <TextBlock Margin="4">mm/s or °/s</TextBlock>
                     </StackPanel>
 
@@ -199,6 +199,109 @@
                         <TextBlock x:Name="tbJogE3Pos" Grid.Row="2" Grid.Column="9" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
                         <Button x:Name="bJogE3Pos" Grid.Row="2" Grid.Column="10" Margin="4" Click="bJogE3Pos_Click">
                             <TextBlock Margin="4">E3+</TextBlock>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem x:Name="tJogCart">
+                <TabItem.Header>Jog Cart</TabItem.Header>
+
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="bJogResetCart" Margin="4" Click="bJogReset_Click">
+                            <TextBlock Margin="4">Reset</TextBlock>
+                        </Button>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="4">Trans. Velocity:</TextBlock>
+                        <TextBox x:Name="tbJogCartTransVelocity" Margin="4" MinWidth="100" TextChanged="tbJogCartTransVelocity_TextChanged">10</TextBox>
+                        <TextBlock Margin="4">mm/s</TextBlock>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="4">Ori. Velocity:</TextBlock>
+                        <TextBox x:Name="tbJogCartOriVelocity" Margin="4" MinWidth="100" TextChanged="tbJogCartOriVelocity_TextChanged">10</TextBox>
+                        <TextBlock Margin="4">mm/s</TextBlock>
+                    </StackPanel>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto" MinWidth="20"/>
+                            <ColumnDefinition Width="auto"/>
+
+                            <ColumnDefinition Width="20"/>
+
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto" MinWidth="20"/>
+                            <ColumnDefinition Width="auto"/>
+
+                            <ColumnDefinition Width="20"/>
+
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto" MinWidth="20"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+
+                        <!-- X -->
+                        <Button x:Name="bJogXNeg" Grid.Row="0" Grid.Column="0" Margin="4" Click="bJogXNeg_Click">
+                            <TextBlock Margin="4">X-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogXPos" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogXPos" Grid.Row="0" Grid.Column="2" Margin="4" Click="bJogXPos_Click">
+                            <TextBlock Margin="4">X+</TextBlock>
+                        </Button>
+
+                        <!-- Y -->
+                        <Button x:Name="bJogYNeg" Grid.Row="1" Grid.Column="0" Margin="4" Click="bJogYNeg_Click">
+                            <TextBlock Margin="4">Y-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogYPos" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogYPos" Grid.Row="1" Grid.Column="2" Margin="4" Click="bJogYPos_Click">
+                            <TextBlock Margin="4">Y+</TextBlock>
+                        </Button>
+
+                        <!-- Z -->
+                        <Button x:Name="bJogZNeg" Grid.Row="2" Grid.Column="0" Margin="4" Click="bJogZNeg_Click">
+                            <TextBlock Margin="4">Z-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogZPos" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogZPos" Grid.Row="2" Grid.Column="2" Margin="4" Click="bJogZPos_Click">
+                            <TextBlock Margin="4">Z+</TextBlock>
+                        </Button>
+
+                        <!-- A -->
+                        <Button x:Name="bJogANeg" Grid.Row="0" Grid.Column="4" Margin="4" Click="bJogANeg_Click">
+                            <TextBlock Margin="4">A-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogAPos" Grid.Row="0" Grid.Column="5" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogAPos" Grid.Row="0" Grid.Column="6" Margin="4" Click="bJogAPos_Click">
+                            <TextBlock Margin="4">A+</TextBlock>
+                        </Button>
+
+                        <!-- B -->
+                        <Button x:Name="bJogBNeg" Grid.Row="1" Grid.Column="4" Margin="4" Click="bJogBNeg_Click">
+                            <TextBlock Margin="4">B-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogBPos" Grid.Row="1" Grid.Column="5" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogBPos" Grid.Row="1" Grid.Column="6" Margin="4" Click="bJogBPos_Click">
+                            <TextBlock Margin="4">B+</TextBlock>
+                        </Button>
+
+                        <!-- C -->
+                        <Button x:Name="bJogCNeg" Grid.Row="2" Grid.Column="4" Margin="4" Click="bJogCNeg_Click">
+                            <TextBlock Margin="4">C-</TextBlock>
+                        </Button>
+                        <TextBlock x:Name="tbJogCPos" Grid.Row="2" Grid.Column="5" VerticalAlignment="Center" HorizontalAlignment="Center">0</TextBlock>
+                        <Button x:Name="bJogCPos" Grid.Row="2" Grid.Column="6" Margin="4" Click="bJogCPos_Click">
+                            <TextBlock Margin="4">C+</TextBlock>
                         </Button>
                     </Grid>
                 </StackPanel>

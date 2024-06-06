@@ -40,11 +40,11 @@ namespace PositionInterfaceClient.MotionGenerator
         /// <summary>
         /// List of CSV lines
         /// </summary>
-        private List<PositionSet> m_lines = new();
+        private readonly List<PositionSet> m_lines = new();
         /// <summary>
         /// Protects access to m_lines
         /// </summary>
-        private ReaderWriterLockSlim m_linesLock = new();
+        private readonly ReaderWriterLockSlim m_linesLock = new();
 
         /// <summary>
         /// Is the CSV program running?
@@ -96,7 +96,7 @@ namespace PositionInterfaceClient.MotionGenerator
         /// <param name="currentPosition"></param>
         /// <param name="timeDiff"></param>
         /// <returns></returns>
-        public PositionSet GetPosition(PositionSet currentPosition, double timeDiff) {
+        public PositionSet GetPositionSet(PositionSet currentPosition, double timeDiff) {
             if(m_isRunning)
             {
                 // repeat if end is reached
@@ -189,7 +189,7 @@ namespace PositionInterfaceClient.MotionGenerator
                     m_lines.Add(position);
                 }
 
-                log.InfoFormat("CSV Motion Generator: File '{0}' read", file);
+                log.InfoFormat("CSV Motion Generator: File '{0}' read, {1} positions", file, m_lines.Count);
             }
             catch(Exception ex)
             {

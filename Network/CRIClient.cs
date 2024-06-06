@@ -34,6 +34,9 @@ namespace PositionInterfaceClient.Network
         // This event is called when the connection changed
         public event ConnectionChange? ConnectionChanged;
 
+        // Enables logging incoming and outgoing CRI messages
+        private bool m_debugLog = false;
+
         /// <summary>
         /// Number of the sent message
         /// </summary>
@@ -112,7 +115,7 @@ namespace PositionInterfaceClient.Network
                 m_port = port;
                 m_stopRunning = false;
                 m_sendKeepaliveTimer.Interval = 500;
-                m_sendStateRequestTimer.Interval = 500;
+                m_sendStateRequestTimer.Interval = 1000;
                 m_readTask = Task.Factory.StartNew(ReadTask, TaskCreationOptions.LongRunning);
             }
             finally
@@ -155,7 +158,7 @@ namespace PositionInterfaceClient.Network
                 m_sendKeepaliveTimer.Start();
                 m_sendStateRequestTimer.Start();
 
-                log.Info("Client connected");
+                log.Info("CRI-Client: Connected");
                 ConnectionChanged?.Invoke(true);
 
                 RequestGetActive();
@@ -184,6 +187,7 @@ namespace PositionInterfaceClient.Network
             }
             finally
             {
+                SendQuit();
                 m_stopRunning = true;
                 m_sendKeepaliveTimer.Stop();
                 m_sendStateRequestTimer.Stop();
@@ -245,12 +249,14 @@ namespace PositionInterfaceClient.Network
                     if (errorIdx > 0) ErrorCode = msgSplit[errorIdx + 1];
                     break;
                 case "CMD":
-                    if(msgSplit.Length >= 4 && msgSplit[1] == "Active") // active / passive state
+                    if(msgSplit.Length >= 4 && msgSplit[2] == "Active") // active / passive state
                     {
+                        if(m_debugLog) log.DebugFormat("CRI: Received \"CMD Active\" message: \"{0}\"", message);
                         if (bool.TryParse(msgSplit[3], out bool active)) IsConnectionActive = active;
                     }
                     else if (msgSplit.Length >= 6 && msgSplit[2] == "PositionInterface") // is the position interface used as position source?
                     {
+                        if (m_debugLog) log.DebugFormat("CRI: Received \"CMD PositionInterface\" message: \"{0}\"", message);
                         if (int.TryParse(msgSplit[3], out int port)) PositionInterfacePort = port;
                         if (bool.TryParse(msgSplit[4], out bool running)) IsPositionInterfaceRunning = running;
                         if (bool.TryParse(msgSplit[5], out bool inUse)) IsPositionInterfaceActive = inUse;
@@ -259,8 +265,12 @@ namespace PositionInterfaceClient.Network
                 case "CONFIG":
                     if (msgSplit.Length >= 4 && msgSplit[2] == "PositionInterface") // is the position interface enabled?
                     {
+                        if (m_debugLog) log.DebugFormat("CRI: Received \"CONFIG PositionInterface\" message: \"{0}\"", message);
                         if(bool.TryParse(msgSplit[3], out bool running)) IsPositionInterfaceRunning = running;
                     }
+                    break;
+                case "CMDERROR":
+                    log.DebugFormat("CRI: Received \"CMDERROR\" message: \"{0}\"", message);
                     break;
                 default:
                     // ignore
@@ -281,7 +291,6 @@ namespace PositionInterfaceClient.Network
         /// </summary>
         private void SendStateRequest(object? sender, System.Timers.ElapsedEventArgs e)
         {
-            RequestGetActive();
             RequestGetPositionInterface();
         }
 
@@ -298,6 +307,8 @@ namespace PositionInterfaceClient.Network
             {
                 if (++m_messageNumber >= 10000) m_messageNumber = 1;
                 string messageComplete = string.Format("CRISTART {0} {1} CRIEND", m_messageNumber, message);
+
+                if (m_debugLog) log.DebugFormat("CRI: Sending \"{0}\"", messageComplete);
 
                 byte[] buffer = Encoding.ASCII.GetBytes(messageComplete);
                 stream?.Write(buffer, 0, buffer.Length);
@@ -389,6 +400,14 @@ namespace PositionInterfaceClient.Network
             if (!IsConnectionActive) SendSetActive();
             log.Info("CRI Client: Requesting using position interface");
             Send("CMD UsePositionInterface " + use.ToString());
+        }
+
+        /// <summary>
+        /// Requests the server to close the connection
+        /// </summary>
+        public void SendQuit()
+        {
+            Send("QUIT");
         }
 
     }

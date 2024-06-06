@@ -8,6 +8,6 @@
         /// <param name="currentPosition">Current position</param>
         /// <param name="timeDiffMS">Time difference since previous call in ms</param>
         /// <returns>New position set</returns>
-        PositionSet GetPosition(PositionSet currentPosition, double timeDiffMS);
+        PositionSet GetPositionSet(PositionSet currentPosition, double timeDiffMS);
     }
 }

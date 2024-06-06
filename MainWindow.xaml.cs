@@ -2,6 +2,7 @@
 using PositionInterfaceClient.MotionGenerator;
 using PositionInterfaceClient.Network;
 using System.Globalization;
+using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -27,12 +28,25 @@ namespace PositionInterfaceClient
         /// <summary>
         /// Current jog values
         /// </summary>
-        private readonly double[] m_jogValues = new double[9];
+        private readonly double[] m_jointJogValues = new double[9];
+        /// <summary>
+        /// Current cartesian translation jog values
+        /// </summary>
+        private Vector3 m_cartPosJogValues = new();
+        /// <summary>
+        /// Current cartesian orientation jog values
+        /// </summary>
+        private Vector3 m_cartOriJogValues = new();
 
         /// <summary>
-        /// Generates the jog motion
+        /// Generates the joint jog motion
         /// </summary>
-        private readonly JogMotionGenerator m_jogMotion = new();
+        private readonly JogMotionGenerator m_jointJogMotion = new();
+
+        /// <summary>
+        /// Generates the cartesian jog motion
+        /// </summary>
+        private readonly JogMotionGenerator m_cartJogMotion = new();
 
         /// <summary>
         /// Generates a motion from CSV
@@ -54,14 +68,16 @@ namespace PositionInterfaceClient
             m_positionClient.ConnectionChanged += OnPositionItfConnectionChanged;
             m_criClient.ConnectionChanged += OnCRIClientConnectionChanged;
 
-            tbJogVelocity.Text = m_jogMotion.Velocity.ToString("F2");
+            tbJogJointVelocity.Text = m_jointJogMotion.JointVelocity.ToString("F2");
+            tbJogCartTransVelocity.Text = m_cartJogMotion.CartPosVelocity.ToString("F2");
+            tbJogCartOriVelocity.Text = m_cartJogMotion.CartOriVelocity.ToString("F2");
 
             m_positionTimer.Elapsed += OnPositionUpdate;
             m_positionTimer.Interval = 100;
             m_positionTimer.AutoReset = true;
             m_positionTimer.Start();
 
-            SelectJogSource();
+            SelectJointJogSource();
         }
 
         /// <summary>
@@ -110,6 +126,12 @@ namespace PositionInterfaceClient
                     tbJogE1Pos.Text = m_positionClient.CurrentPosition.Joints[6].ToString("F2", CultureInfo.InvariantCulture);
                     tbJogE2Pos.Text = m_positionClient.CurrentPosition.Joints[7].ToString("F2", CultureInfo.InvariantCulture);
                     tbJogE3Pos.Text = m_positionClient.CurrentPosition.Joints[8].ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogXPos.Text = m_positionClient.CurrentPosition.CartesianPosition.X.ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogYPos.Text = m_positionClient.CurrentPosition.CartesianPosition.Y.ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogZPos.Text = m_positionClient.CurrentPosition.CartesianPosition.Z.ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogAPos.Text = m_positionClient.CurrentPosition.CartesianOrientation.X.ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogBPos.Text = m_positionClient.CurrentPosition.CartesianOrientation.Y.ToString("F2", CultureInfo.InvariantCulture);
+                    tbJogCPos.Text = m_positionClient.CurrentPosition.CartesianOrientation.Z.ToString("F2", CultureInfo.InvariantCulture);
                 }
                 else
                 {
@@ -127,6 +149,12 @@ namespace PositionInterfaceClient
                     tbJogE1Pos.Text = "0";
                     tbJogE2Pos.Text = "0";
                     tbJogE3Pos.Text = "0";
+                    tbJogXPos.Text = "0";
+                    tbJogYPos.Text = "0";
+                    tbJogZPos.Text = "0";
+                    tbJogAPos.Text = "0";
+                    tbJogBPos.Text = "0";
+                    tbJogCPos.Text = "0";
                 }
             }));
         }
@@ -229,7 +257,7 @@ namespace PositionInterfaceClient
                         m_criClient.Stop();
                         return;
                     }
-                    Task.Delay(100);
+                    Task.Delay(200).Wait();
                 }
 
                 // wait till position interface is started
@@ -241,35 +269,38 @@ namespace PositionInterfaceClient
                 while(!m_criClient.IsPositionInterfaceRunning)
                 {
                     m_criClient.RequestGetPositionInterface();
-                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(5))
+                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(10))
                     {
                         log.Info("CRI did not start the position interface in time, aborting");
                         m_criClient.Stop();
                         return;
                     }
-                    Task.Delay(100);
+                    Task.Delay(200).Wait();
                 }
 
-                // wait till position interface is in use
+                // Start position client
+                m_positionClient.Start(interval, address, m_criClient.PositionInterfacePort);
+
+                // Wait for the client to connect, otherwise the robot will stop using position interface immediately
+                Task.Delay(1000).Wait();
+
+                // wait till position interface is in use (the robot stops using it if there is no connection)
                 timestamp = DateTime.Now;
-                if (!m_criClient.IsPositionInterfaceRunning)
+                if (!m_criClient.IsPositionInterfaceActive)
                 {
                     m_criClient.SendUsePositionInterface(true);
                 }
                 while (!m_criClient.IsPositionInterfaceActive)
                 {
                     m_criClient.RequestGetPositionInterface();
-                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(5))
+                    if (DateTime.Now - timestamp > TimeSpan.FromSeconds(10))
                     {
                         log.Info("CRI did not activate the position interface in time, aborting");
                         m_criClient.Stop();
                         return;
                     }
-                    Task.Delay(100);
+                    Task.Delay(200).Wait();
                 }
-
-                // Start position client
-                m_positionClient.Start(interval, address, m_criClient.PositionInterfacePort);
             }));
         }
 
@@ -309,12 +340,23 @@ namespace PositionInterfaceClient
         /// <summary>
         /// Selects jog as position source
         /// </summary>
-        private void SelectJogSource()
+        private void SelectJointJogSource()
         {
-            log.Info("Using jog motion");
+            log.Info("Using joint jog motion");
             ResetJog(true);
             m_csvMotion.Stop();
-            m_positionClient.PositionSource = m_jogMotion;
+            m_positionClient.PositionSource = m_jointJogMotion;
+        }
+
+        /// <summary>
+        /// Selects jog as position source
+        /// </summary>
+        private void SelectCartJogSource()
+        {
+            log.Info("Using cartesian jog motion");
+            ResetJog(true);
+            m_csvMotion.Stop();
+            m_positionClient.PositionSource = m_cartJogMotion;
         }
 
         /// <summary>
@@ -355,15 +397,16 @@ namespace PositionInterfaceClient
         /// <param name="resetPosition">Set to true to set the current position. When in motion this may lead to a short backwards motion</param>
         private void ResetJog(bool resetPosition)
         {
-            for (int i = 0; i < m_jogValues.Length; i++)
+            for (int i = 0; i < m_jointJogValues.Length; i++)
             {
-                m_jogValues[i] = 0;
+                m_jointJogValues[i] = 0;
             }
-            m_jogMotion.SetJog(m_jogValues);
-            m_jogMotion.SetJog(m_jogValues);
+            m_jointJogMotion.SetJog(m_jointJogValues);
+            m_cartJogMotion.SetJog(new Vector3(), new Vector3());
             if (resetPosition)
             {
-                m_jogMotion.SetJoints(m_positionClient.CurrentPosition.Joints);
+                m_jointJogMotion.SetJoints(m_positionClient.CurrentPosition.Joints, m_positionClient.CurrentPosition.CartesianPosition, m_positionClient.CurrentPosition.CartesianOrientation);
+                m_cartJogMotion.SetJoints(m_positionClient.CurrentPosition.Joints, m_positionClient.CurrentPosition.CartesianPosition, m_positionClient.CurrentPosition.CartesianOrientation);
             }
         }
 
@@ -374,9 +417,27 @@ namespace PositionInterfaceClient
         /// <param name="diff">Difference in percent (-1.0 .. 1.0)</param>
         private void ChangeJog(int axis, double diff)
         {
-            if (axis < 0 || axis > m_jogValues.Length) return;
-            m_jogValues[axis] = Math.Clamp(m_jogValues[axis] + diff, -1, 1);
-            m_jogMotion.SetJog(m_jogValues);
+            if (axis < 0 || axis > m_jointJogValues.Length) return;
+            m_jointJogValues[axis] = Math.Clamp(m_jointJogValues[axis] + diff, -1, 1);
+            m_jointJogMotion.SetJog(m_jointJogValues);
+        }
+
+        /// <summary>
+        /// Changes the jog value of the cartesian translation and orientation
+        /// </summary>
+        /// <param name="trans">Cartesian translation in mm/s</param>
+        /// <param name="ori">Cartesian orientation in degrees/s</param>
+        private void ChangeCartJog(Vector3 trans, Vector3 ori)
+        {
+            trans.X = Math.Clamp(trans.X, -1, 1);
+            trans.Y = Math.Clamp(trans.Y, -1, 1);
+            trans.Z = Math.Clamp(trans.Z, -1, 1);
+            ori.X = Math.Clamp(ori.X, -1, 1);
+            ori.Y = Math.Clamp(ori.Y, -1, 1);
+            ori.Z = Math.Clamp(ori.Z, -1, 1);
+            m_cartPosJogValues += trans;
+            m_cartOriJogValues += ori;
+            m_cartJogMotion.SetJog(m_cartPosJogValues, m_cartOriJogValues);
         }
 
         private void bJogA1Neg_Click(object sender, RoutedEventArgs e)
@@ -469,16 +530,102 @@ namespace PositionInterfaceClient
             ChangeJog(8, 0.1);
         }
 
+        private void bJogXNeg_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeCartJog(new Vector3(-1, 0, 0), new Vector3(0, 0, 0));
+        }
+
+        private void bJogXPos_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeCartJog(new Vector3(1, 0, 0), new Vector3(0, 0, 0));
+        }
+
+        private void bJogYNeg_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeCartJog(new Vector3(0, -1, 0), new Vector3(0, 0, 0));
+        }
+
+        private void bJogYPos_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeCartJog(new Vector3(0, 1, 0), new Vector3(0, 0, 0));
+        }
+
+        private void bJogZNeg_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeCartJog(new Vector3(0, 0, -1), new Vector3(0, 0, 0));
+        }
+
+        private void bJogZPos_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeCartJog(new Vector3(0, 0, 1), new Vector3(0, 0, 0));
+        }
+
+        private void bJogANeg_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeCartJog(new Vector3(0, 0, 0), new Vector3(-1, 0, 0));
+        }
+
+        private void bJogAPos_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeCartJog(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+        }
+
+        private void bJogBNeg_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeCartJog(new Vector3(0, 0, 0), new Vector3(0, -1, 0));
+        }
+
+        private void bJogBPos_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeCartJog(new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+        }
+
+        private void bJogCNeg_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeCartJog(new Vector3(0, 0, 0), new Vector3(0, 0, -1));
+        }
+
+        private void bJogCPos_Click(object sender, RoutedEventArgs e)
+        {
+            ChangeCartJog(new Vector3(0, 0, 0), new Vector3(0, 0, 1));
+        }
+
         /// <summary>
-        /// Handler for jog velocity changes
+        /// Handler for joint jog velocity changes
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void tbJogVelocity_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (double.TryParse(tbJogVelocity.Text, out double vel))
+            if (double.TryParse(tbJogJointVelocity.Text, out double vel))
             {
-                m_jogMotion.Velocity = vel;
+                m_jointJogMotion.JointVelocity = vel;
+            }
+        }
+
+        /// <summary>
+        /// Handler for cartesian translation jog velocity changes
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tbJogCartTransVelocity_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (double.TryParse(tbJogCartTransVelocity.Text, out double vel))
+            {
+                m_cartJogMotion.CartPosVelocity = vel;
+            }
+        }
+
+        /// <summary>
+        /// Handler for cartesian orientation jog velocity changes
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tbJogCartOriVelocity_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (double.TryParse(tbJogCartOriVelocity.Text, out double vel))
+            {
+                m_cartJogMotion.CartOriVelocity = vel;
             }
         }
 
@@ -543,9 +690,13 @@ namespace PositionInterfaceClient
         /// <param name="e"></param>
         private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (tcPositionSource.SelectedItem == tJog)
+            if (tcPositionSource.SelectedItem == tJogJoint)
             {
-                SelectJogSource();
+                SelectJointJogSource();
+            }
+            else if (tcPositionSource.SelectedItem == tJogCart)
+            {
+                SelectCartJogSource();
             }
             else if (tcPositionSource.SelectedItem == tCSV)
             {
@@ -556,5 +707,6 @@ namespace PositionInterfaceClient
                 SelectNoSource();
             }
         }
+
     }
 }

@@ -178,7 +178,7 @@ namespace PositionInterfaceClient.Network
         {
             // Get position from position source or current position from robot
             DateTime now = DateTime.Now;
-            PositionSet targetPosition = PositionSource?.GetPosition(CurrentPosition, (now - m_lastTargetPositionUpdate).TotalMilliseconds) ?? CurrentPosition;
+            PositionSet targetPosition = PositionSource?.GetPositionSet(CurrentPosition, (now - m_lastTargetPositionUpdate).TotalMilliseconds) ?? CurrentPosition;
             LastTargetPosition = targetPosition;
             // calculate frequency
             m_targetPositionUpdateFrequencyMS.GetNewAverage((now - m_lastTargetPositionUpdate).TotalMilliseconds);
