@@ -15,13 +15,13 @@ namespace PositionInterfaceClient.MotionGenerator
         // The current jog values
         private readonly double[] m_currentJog = new double[9];
         // The current cartesian position
-        private Vector3 m_currentCartPos = new Vector3();
+        private Vector3 m_currentCartPos = new();
         // The current cartesian position jog values
-        private Vector3 m_currentCartPosJog = new Vector3();
+        private Vector3 m_currentCartPosJog = new();
         // The current cartesian orientation
-        private Vector3 m_currentCartOri = new Vector3();
+        private Vector3 m_currentCartOri = new();
         // The current cartesian orientation jog values
-        private Vector3 m_currentCartOriJog = new Vector3();
+        private Vector3 m_currentCartOriJog = new();
 
         // Joint velocity in degrees/s or mm/s
         public double JointVelocity { get; set; } = 10;
@@ -80,7 +80,7 @@ namespace PositionInterfaceClient.MotionGenerator
                 m_currentJoints[i] += m_currentJog[i] * JointVelocity * 0.001 * timeDiff;
             }
             m_currentCartPos += m_currentCartPosJog * (float)(CartPosVelocity * 0.001 * timeDiff);
-            m_currentCartOri += m_currentCartOriJog * (float)(CartPosVelocity * 0.001 * timeDiff);
+            m_currentCartOri += m_currentCartOriJog * (float)(CartOriVelocity * 0.001 * timeDiff);
             return m_currentJoints;
         }
 

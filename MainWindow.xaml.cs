@@ -401,8 +401,11 @@ namespace PositionInterfaceClient
             {
                 m_jointJogValues[i] = 0;
             }
+            m_cartPosJogValues = new();
+            m_cartOriJogValues = new();
             m_jointJogMotion.SetJog(m_jointJogValues);
             m_cartJogMotion.SetJog(new Vector3(), new Vector3());
+
             if (resetPosition)
             {
                 m_jointJogMotion.SetJoints(m_positionClient.CurrentPosition.Joints, m_positionClient.CurrentPosition.CartesianPosition, m_positionClient.CurrentPosition.CartesianOrientation);
@@ -429,14 +432,12 @@ namespace PositionInterfaceClient
         /// <param name="ori">Cartesian orientation in degrees/s</param>
         private void ChangeCartJog(Vector3 trans, Vector3 ori)
         {
-            trans.X = Math.Clamp(trans.X, -1, 1);
-            trans.Y = Math.Clamp(trans.Y, -1, 1);
-            trans.Z = Math.Clamp(trans.Z, -1, 1);
-            ori.X = Math.Clamp(ori.X, -1, 1);
-            ori.Y = Math.Clamp(ori.Y, -1, 1);
-            ori.Z = Math.Clamp(ori.Z, -1, 1);
-            m_cartPosJogValues += trans;
-            m_cartOriJogValues += ori;
+            m_cartPosJogValues.X = Math.Clamp(m_cartPosJogValues.X + trans.X, -1, 1);
+            m_cartPosJogValues.Y = Math.Clamp(m_cartPosJogValues.Y + trans.Y, -1, 1);
+            m_cartPosJogValues.Z = Math.Clamp(m_cartPosJogValues.Z + trans.Z, -1, 1);
+            m_cartOriJogValues.X = Math.Clamp(m_cartOriJogValues.X + ori.X, -1, 1);
+            m_cartOriJogValues.Y = Math.Clamp(m_cartOriJogValues.Y + ori.Y, -1, 1);
+            m_cartOriJogValues.Z = Math.Clamp(m_cartOriJogValues.Z + ori.Z, -1, 1);
             m_cartJogMotion.SetJog(m_cartPosJogValues, m_cartOriJogValues);
         }
 
@@ -447,7 +448,7 @@ namespace PositionInterfaceClient
 
         private void bJogA1Pos_Click(object sender, RoutedEventArgs e)
         {
-            ChangeJog(0, +0.1);
+            ChangeJog(0, 0.1);
         }
 
         private void bJogA2Neg_Click(object sender, RoutedEventArgs e)

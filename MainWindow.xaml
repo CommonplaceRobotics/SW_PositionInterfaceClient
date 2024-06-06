@@ -86,7 +86,7 @@
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <Button x:Name="bJogResetJOint" Margin="4" Click="bJogReset_Click">
-                            <TextBlock Margin="4">Reset</TextBlock>
+                            <TextBlock Margin="4">Stop</TextBlock>
                         </Button>
                     </StackPanel>
 
@@ -210,7 +210,7 @@
                 <StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <Button x:Name="bJogResetCart" Margin="4" Click="bJogReset_Click">
-                            <TextBlock Margin="4">Reset</TextBlock>
+                            <TextBlock Margin="4">Stop</TextBlock>
                         </Button>
                     </StackPanel>
 
