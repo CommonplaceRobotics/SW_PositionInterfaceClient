@@ -15,6 +15,8 @@ namespace PositionInterfaceClient
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()?.DeclaringType);
 
+        private static readonly string Version = "V1.0.0";
+
         /// <summary>
         /// Does the network communication
         /// </summary>
@@ -63,7 +65,11 @@ namespace PositionInterfaceClient
         /// </summary>
         public MainWindow()
         {
+            log.InfoFormat("Starting Position Interface Client {0}", Version);
+
             InitializeComponent();
+
+            Title += " " + Version;
 
             m_positionClient.ConnectionChanged += OnPositionItfConnectionChanged;
             m_criClient.ConnectionChanged += OnCRIClientConnectionChanged;

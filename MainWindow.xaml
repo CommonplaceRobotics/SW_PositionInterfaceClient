@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PositionInterfaceClient" xmlns:userinterface="clr-namespace:PositionInterfaceClient.UserInterface"
         mc:Ignorable="d"
-        Title="MainWindow" Height="550" Width="800">
+        Title="Position Interface Client" Height="550" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto"/>
