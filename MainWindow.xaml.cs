@@ -15,7 +15,10 @@ namespace PositionInterfaceClient
     {
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()?.DeclaringType);
 
-        private static readonly string Version = "V1.0.0";
+        public static readonly int SWVersionMajor = 1;
+        public static readonly int SWVersionMinor = 0;
+        public static readonly int SWVersionPatch = 1;
+        public static readonly string SWVersionString = string.Format("{0}.{1}.{2}", SWVersionMajor, SWVersionMinor, SWVersionPatch);
 
         /// <summary>
         /// Does the network communication
@@ -65,11 +68,11 @@ namespace PositionInterfaceClient
         /// </summary>
         public MainWindow()
         {
-            log.InfoFormat("Starting Position Interface Client {0}", Version);
+            log.InfoFormat("Starting Position Interface Client V{0}", SWVersionString);
 
             InitializeComponent();
 
-            Title += " " + Version;
+            Title += " V" + SWVersionString;
 
             m_positionClient.ConnectionChanged += OnPositionItfConnectionChanged;
             m_criClient.ConnectionChanged += OnCRIClientConnectionChanged;

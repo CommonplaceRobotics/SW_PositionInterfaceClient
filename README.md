@@ -1,4 +1,6 @@
 # Position Interface Demo Client
+[![Build and Test](https://github.com/CommonplaceRobotics/SW_PositionInterfaceClient/actions/workflows/build.yml/badge.svg)](https://github.com/CommonplaceRobotics/SW_PositionInterfaceClient/actions/workflows/build.yml)
+[![SBOM and Security Audit](https://github.com/CommonplaceRobotics/SW_PositionInterfaceClient/actions/workflows/sbom.yml/badge.svg)](https://github.com/CommonplaceRobotics/SW_PositionInterfaceClient/actions/workflows/sbom.yml)
 
 This is the demonstration and test client for the fast position interface of robots based on the igus Robot Control (iRC) or Commonplace Robotics' RobotControl Core. This interface is supported in V14-003 and newer.
 
